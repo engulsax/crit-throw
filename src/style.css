@@ -26,10 +26,89 @@ body {
   height: 100%;
 }
 
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 0;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 11, 10, 0.72) 0%,
+    rgba(12, 11, 10, 0.2) 38%,
+    transparent 58%
+  );
+  pointer-events: none;
+}
+
+.overlay--hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.overlay__title {
+  position: relative;
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8e0d4;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75);
+}
+
+.overlay__line {
+  position: relative;
+  margin: 0.5rem 0 0;
+  max-width: 18rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: rgba(232, 224, 212, 0.82);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+.skip {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(232, 224, 212, 0.68);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.skip:hover {
+  color: rgba(232, 224, 212, 0.85);
+}
+
+.skip:focus-visible {
+  outline: 2px solid #c9a227;
+  outline-offset: 2px;
+}
+
 #hud {
   position: absolute;
   left: 50%;
-  bottom: 1.5rem;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;

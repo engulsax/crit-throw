@@ -23,6 +23,11 @@ import {
   World,
 } from "cannon-es";
 import { buildD20FaceSet, readSettledD20Value } from "../domain/d20Faces";
+import {
+  canTriggerHeroRoll,
+  HERO_AUTO_START_MS,
+  showReplayControl,
+} from "../domain/heroEntry";
 import { activeRollMode } from "../domain/rollMode";
 import { createRestTracker, updateRestTracker } from "../domain/resting";
 import { createD20Body, tossD20 } from "../physics/d20Body";
@@ -58,7 +63,9 @@ export type RollScene = {
 export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const resultEl = document.querySelector<HTMLElement>("#result");
   const rollBtn = document.querySelector<HTMLButtonElement>("#roll");
-  if (!resultEl || !rollBtn) {
+  const overlayEl = document.querySelector<HTMLElement>("#overlay");
+  const skipBtn = document.querySelector<HTMLButtonElement>("#skip");
+  if (!resultEl || !rollBtn || !overlayEl || !skipBtn) {
     throw new Error("HUD elements missing");
   }
 
@@ -130,10 +137,25 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const meshQuat = new Quaternion();
   const restTracker = createRestTracker();
   let rolling = false;
+  let completedRolls = 0;
   let accumulator = 0;
   let raf = 0;
   let disposed = false;
   let lastFrameMs = performance.now();
+  let autoStartTimer = 0;
+
+  const hideOverlay = () => {
+    overlayEl.classList.add("overlay--hidden");
+    skipBtn.hidden = true;
+  };
+
+  const syncReplayControl = () => {
+    const show = showReplayControl(completedRolls);
+    rollBtn.hidden = !show;
+    if (show) {
+      rollBtn.focus({ preventScroll: true });
+    }
+  };
 
   const resize = () => {
     const w = canvas.clientWidth;
@@ -163,8 +185,11 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const rollMode = activeRollMode();
 
   const onRoll = () => {
+    if (!canTriggerHeroRoll(completedRolls, rolling)) return;
+    hideOverlay();
     rolling = true;
     resultEl.textContent = "…";
+    rollBtn.hidden = true;
     if (rollMode === "hero") {
       tossHeroD20(d20.body, d20.radius);
     } else {
@@ -172,7 +197,16 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     }
   };
 
+  const onSkip = () => {
+    window.clearTimeout(autoStartTimer);
+    hideOverlay();
+    if (canTriggerHeroRoll(completedRolls, rolling)) {
+      onRoll();
+    }
+  };
+
   rollBtn.addEventListener("click", onRoll);
+  skipBtn.addEventListener("click", onSkip);
 
   const tick = (nowMs: number) => {
     if (disposed) return;
@@ -198,6 +232,8 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
       if (updateRestTracker(restTracker, linearSpeed, angularSpeed, nowMs)) {
         resultEl.textContent = String(readSettledD20Value(faceSet, meshQuat));
         rolling = false;
+        completedRolls += 1;
+        syncReplayControl();
       }
     }
   };
@@ -206,13 +242,21 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   window.addEventListener("resize", resize);
   raf = requestAnimationFrame(tick);
 
+  autoStartTimer = window.setTimeout(() => {
+    if (!disposed && canTriggerHeroRoll(completedRolls, rolling)) {
+      onRoll();
+    }
+  }, HERO_AUTO_START_MS);
+
   return {
     renderer,
     dispose: () => {
       disposed = true;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      window.clearTimeout(autoStartTimer);
       rollBtn.removeEventListener("click", onRoll);
+      skipBtn.removeEventListener("click", onSkip);
       tavern.dispose();
       diceMesh.geometry.dispose();
       (diceMesh.material as MeshStandardMaterial).dispose();

@@ -23,3 +23,12 @@ Earned because the product is a portfolio reel beat, not a tool: the scene shoul
 - **1440px:** Hearth emissive read as a flat orange slab; reduced emissive intensity for softer glow.
 
 Round 2 at 390px: table and hearth remain visible with Roll HUD clear above bottom edge.
+
+## Last look
+2026-10-24 — Playwright on `npm run dev` (localhost:5173) at 390×844, 768×1024, 1440×900.
+
+- **390px:** Intro overlay title sat on the bright hearth; added a top gradient scrim behind overlay copy.
+- **768px:** Skip control was easy to miss; bumped default skip label contrast.
+- **1440px:** Wide layout read fine; no change after scrim (overlay only shows ~650ms before auto-roll).
+
+Round 2 at 390px after ~9s: settled **20** with focusable **Again** replay; cold load shows intro copy then auto-toss within ~650ms.
