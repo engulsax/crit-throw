@@ -32,3 +32,15 @@ Round 2 at 390px: table and hearth remain visible with Roll HUD clear above bott
 - **1440px:** Wide layout read fine; no change after scrim (overlay only shows ~650ms before auto-roll).
 
 Round 2 at 390px after ~9s: settled **20** with focusable **Again** replay; cold load shows intro copy then auto-toss within ~650ms.
+
+## Crit beat
+Natural 20 on settle fires one 1.6s beat from a single clock: hearth-ember and die-gold sparks off the die's shoulders, a gold shockwave on the table, a gold flash light that lights the room, the die's own glow, a camera push-in with a short shake, and the HUD number stamping in gold. No new copy; the tavern itself carries the moment. Reduced motion keeps the light and sparks and drops camera movement and the stamp.
+
+## Last look
+2026-10-24 — Playwright (Chromium, SwiftShader) on `npm run dev` at 390×844, 768×1024, 1440×900; frames at crit +90ms, +440ms, and idle +2.2s.
+
+- **1440px:** Impact frame was black and the die was missing. The hero toss flung the die to z≈8, behind the camera, so the push-in swung the camera around. Retuned the toss to settle at table center and added an on-table assertion to the hero integration test.
+- **768px:** Sparks read as fine dust, the flash barely lit the table, and the ring was hidden under the die. Doubled spark size, spawned sparks from the die's shoulders, raised the flash peak, and started the ring at the die edge.
+- **390px:** The push-in crowded the die past both frame edges. Push distance now scales with aspect ratio.
+
+Round 2: at every width, sparks fountain over the hearth and the die's top face ignites. After the beat, the camera returns to the same framing as before it. Idle FPS matched before and after a second crit at all three widths (22/23, 10/9, 7/6 under software GL). Still weak: the die is oversized for the table, and the shockwave ring is barely visible behind it.

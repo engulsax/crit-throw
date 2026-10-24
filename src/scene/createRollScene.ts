@@ -22,6 +22,7 @@ import {
   Vec3,
   World,
 } from "cannon-es";
+import { isNaturalCrit, type CritBeatFrame } from "../domain/critBeat";
 import { buildD20FaceSet, readSettledD20Value } from "../domain/d20Faces";
 import {
   canTriggerHeroRoll,
@@ -35,10 +36,16 @@ import {
   applyHeroSettleGuidance,
   tossHeroD20,
 } from "../physics/heroRoll";
+import { createCritBurst } from "./createCritBurst";
 import { createTavernDiorama } from "./createTavernDiorama";
 
 const FIXED_STEP = 1 / 60;
 const LOOK_AT = new Vector3(0, 0.38, 0);
+const CRIT_PUSH_DISTANCE = 0.38;
+const CRIT_PUSH_FULL_ASPECT = 1.3;
+const CRIT_LOOK_PULL = 0.5;
+const CRIT_SHAKE = 0.03;
+const CRIT_DIE_GLOW = 1.1;
 
 function applyHeroFraming(camera: PerspectiveCamera, aspect: number): void {
   if (aspect < 0.72) {
@@ -122,17 +129,23 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const d20 = createD20Body(world, diceMaterial);
   const faceSet = buildD20FaceSet(d20.radius);
 
-  const diceMesh = new Mesh(
-    new IcosahedronGeometry(d20.radius, 0),
-    new MeshStandardMaterial({
-      color: 0xc9a227,
-      metalness: 0.35,
-      roughness: 0.45,
-      flatShading: true,
-    })
-  );
+  const diceMeshMaterial = new MeshStandardMaterial({
+    color: 0xc9a227,
+    metalness: 0.35,
+    roughness: 0.45,
+    flatShading: true,
+    emissive: 0xffb340,
+    emissiveIntensity: 0,
+  });
+  const diceMesh = new Mesh(new IcosahedronGeometry(d20.radius, 0), diceMeshMaterial);
   diceMesh.castShadow = true;
   scene.add(diceMesh);
+
+  const critBurst = createCritBurst(scene, tavern.tableSurfaceY, d20.radius);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const cameraBase = new Vector3();
+  const cameraPushDir = new Vector3();
+  const lookTarget = new Vector3();
 
   const meshQuat = new Quaternion();
   const restTracker = createRestTracker();
@@ -164,7 +177,23 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     const aspect = w / h;
     camera.aspect = aspect;
     applyHeroFraming(camera, aspect);
+    cameraBase.copy(camera.position);
     renderer.setSize(w, h, false);
+  };
+
+  const applyCritCamera = (frame: CritBeatFrame | null, nowMs: number) => {
+    camera.position.copy(cameraBase);
+    lookTarget.copy(LOOK_AT);
+    if (frame && !reducedMotion.matches) {
+      cameraPushDir.subVectors(diceMesh.position, cameraBase).normalize();
+      const pushReach = CRIT_PUSH_DISTANCE * Math.min(1, camera.aspect / CRIT_PUSH_FULL_ASPECT);
+      camera.position.addScaledVector(cameraPushDir, frame.push * pushReach);
+      const shake = frame.shake * CRIT_SHAKE;
+      camera.position.x += Math.sin(nowMs * 0.071) * shake;
+      camera.position.y += Math.sin(nowMs * 0.093 + 1.3) * shake;
+      lookTarget.lerp(diceMesh.position, frame.push * CRIT_LOOK_PULL);
+    }
+    camera.lookAt(lookTarget);
   };
 
   const syncMeshFromBody = () => {
@@ -187,6 +216,9 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const onRoll = () => {
     if (!canTriggerHeroRoll(completedRolls, rolling)) return;
     hideOverlay();
+    critBurst.reset();
+    diceMeshMaterial.emissiveIntensity = 0;
+    resultEl.classList.remove("result--crit");
     rolling = true;
     resultEl.textContent = "…";
     rollBtn.hidden = true;
@@ -224,13 +256,21 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     }
 
     syncMeshFromBody();
+    const critFrame = critBurst.update(elapsed);
+    diceMeshMaterial.emissiveIntensity = (critFrame?.flash ?? 0) * CRIT_DIE_GLOW;
+    applyCritCamera(critFrame, nowMs);
     renderer.render(scene, camera);
 
     if (rolling) {
       const linearSpeed = d20.body.velocity.length();
       const angularSpeed = d20.body.angularVelocity.length();
       if (updateRestTracker(restTracker, linearSpeed, angularSpeed, nowMs)) {
-        resultEl.textContent = String(readSettledD20Value(faceSet, meshQuat));
+        const value = readSettledD20Value(faceSet, meshQuat);
+        resultEl.textContent = String(value);
+        if (isNaturalCrit(value)) {
+          critBurst.trigger(diceMesh.position);
+          resultEl.classList.add("result--crit");
+        }
         rolling = false;
         completedRolls += 1;
         syncReplayControl();
@@ -257,9 +297,10 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
       window.clearTimeout(autoStartTimer);
       rollBtn.removeEventListener("click", onRoll);
       skipBtn.removeEventListener("click", onSkip);
+      critBurst.dispose();
       tavern.dispose();
       diceMesh.geometry.dispose();
-      (diceMesh.material as MeshStandardMaterial).dispose();
+      diceMeshMaterial.dispose();
       renderer.dispose();
       world.removeBody(d20.body);
       world.removeBody(floorBody);

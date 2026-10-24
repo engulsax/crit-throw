@@ -22,7 +22,12 @@ import {
 
 const TABLE_Y = 0;
 
-function simulateHeroSettledRoll(run: number): number {
+const TABLE_HALF_WIDTH = 1.3;
+const TABLE_HALF_DEPTH = 0.875;
+
+type SettledHeroRoll = { value: number; x: number; z: number };
+
+function simulateHeroSettledRoll(run: number): SettledHeroRoll {
   const world = new World({ gravity: new Vec3(0, -14, 0) });
   world.broadphase = new NaiveBroadphase();
 
@@ -67,7 +72,11 @@ function simulateHeroSettledRoll(run: number): number {
         d20.body.quaternion.z,
         d20.body.quaternion.w
       );
-      return readSettledD20Value(faceSet, orientation);
+      return {
+        value: readSettledD20Value(faceSet, orientation),
+        x: d20.body.position.x,
+        z: d20.body.position.z,
+      };
     }
   }
 
@@ -77,7 +86,15 @@ function simulateHeroSettledRoll(run: number): number {
 describe("Hero roll choreography", () => {
   it("lands on 20 for ten consecutive portfolio rolls", () => {
     for (let run = 1; run <= 10; run++) {
-      expect(simulateHeroSettledRoll(run)).toBe(20);
+      expect(simulateHeroSettledRoll(run).value).toBe(20);
+    }
+  });
+
+  it("settles on the tavern table, in front of the hero camera", () => {
+    for (let run = 1; run <= 3; run++) {
+      const { x, z } = simulateHeroSettledRoll(run);
+      expect(Math.abs(x)).toBeLessThan(TABLE_HALF_WIDTH);
+      expect(Math.abs(z)).toBeLessThan(TABLE_HALF_DEPTH);
     }
   });
 });

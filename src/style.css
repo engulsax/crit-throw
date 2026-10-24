@@ -130,6 +130,31 @@ body {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
+.result--crit {
+  color: #ffd36a;
+  text-shadow:
+    0 0 18px rgba(255, 138, 61, 0.85),
+    0 2px 12px rgba(0, 0, 0, 0.7);
+  animation: crit-stamp 0.48s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes crit-stamp {
+  from {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result--crit {
+    animation: none;
+  }
+}
+
 .roll {
   padding: 0.65rem 1.75rem;
   border: 1px solid rgba(232, 224, 212, 0.35);

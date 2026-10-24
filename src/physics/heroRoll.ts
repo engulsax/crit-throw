@@ -32,14 +32,14 @@ export function tossHeroD20(body: Body, radius: number): void {
   body.velocity.set(0, 0, 0);
   body.angularVelocity.set(0, 0, 0);
 
-  body.position.set(0.14, radius + 1.28, -0.11);
+  body.position.set(-0.5, radius + 0.9, -0.45);
 
   const q = new CQuaternion();
   q.setFromEuler(1.05, 2.35, 0.55);
   body.quaternion.copy(q);
 
-  body.applyImpulse(new Vec3(0.85, 3.05, 1.15));
-  body.applyTorque(new Vec3(5.5, -7.5, 9.0));
+  body.applyImpulse(new Vec3(0.25, 0.25, 0.15));
+  body.applyTorque(new Vec3(1.4, -1.8, 2.2));
 }
 
 const GUIDE_LINEAR_MAX = 1.35;
