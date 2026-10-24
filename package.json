@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:hero": "node scripts/hero-preview-check.mjs"
+    "test:hero": "node scripts/hero-preview-check.mjs",
+    "test:hero:live": "node scripts/hero-preview-check.mjs --live"
   },
   "dependencies": {
     "cannon-es": "^0.20.0",

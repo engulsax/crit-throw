@@ -1,6 +1,9 @@
 import { chromium } from "playwright";
 
-const BASE = process.env.PREVIEW_URL ?? "http://localhost:4173/";
+const LIVE_URL = "https://engulsax.github.io/crit-throw/";
+const BASE =
+  process.env.PREVIEW_URL ??
+  (process.argv.includes("--live") ? LIVE_URL : "http://localhost:4173/");
 const widths = [390, 768, 1440];
 
 const browser = await chromium.launch();
