@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:hero": "node scripts/hero-preview-check.mjs"
   },
   "dependencies": {
     "cannon-es": "^0.20.0",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@types/three": "^0.170.0",
+    "playwright": "^1.64.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
     "vitest": "^2.1.4"

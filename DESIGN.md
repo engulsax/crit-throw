@@ -53,3 +53,11 @@ Round 2: at every width, sparks fountain over the hearth and the die's top face 
 - **390px:** Die still legible but table depth and hearth opening stay in frame above the HUD.
 
 Round 2 at 1440px: settled **20** with hearth glow and mug/candle flanking the die; projected width under one-third viewport (asserted in hero integration test).
+
+## Last look
+2026-10-24 — Playwright on `npm run preview` (production build) at 390×844, 768×844, 1440×844; `scripts/hero-preview-check.mjs`.
+
+- **390px:** Auto crit and gold **20** HUD clear of bottom edge; intro line no longer spoils the outcome.
+- **768px / 1440px:** Replay **Again** → second crit; no console errors; overlay fades once toss starts (~650ms).
+
+Round 2: no layout regressions vs dev; only copy tweak from critic pass.

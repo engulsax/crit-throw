@@ -8,9 +8,7 @@ describe("entry shell", () => {
   it("has document title and zero-onboarding overlay copy", () => {
     expect(html).toContain("<title>Crit Throw — tavern natural 20</title>");
     expect(html).toContain('class="overlay__title">Crit Throw</h1>');
-    expect(html).toContain(
-      "The gold D20 hits twenty on this table."
-    );
+    expect(html).toContain("Candlelit table. One gold die.");
   });
 
   it("exposes focusable replay control and result HUD", () => {
