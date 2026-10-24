@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        background: radial-gradient(ellipse 80% 70% at 50% 40%, #2a1f14 0%, #0c0b0a 72%);
+        font-family: system-ui, sans-serif;
+        color: #e8e0d4;
+        overflow: hidden;
+      }
+      .frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border: 3px solid #3d3428;
+      }
+      .glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 62% 58%, rgba(201, 162, 39, 0.22) 0%, transparent 42%);
+      }
+      .hearth {
+        position: absolute;
+        left: 72px;
+        bottom: 88px;
+        width: 140px;
+        height: 100px;
+        background: linear-gradient(180deg, #4a2818 0%, #1a100c 100%);
+        border-radius: 8px 8px 4px 4px;
+        box-shadow: 0 0 48px rgba(255, 120, 40, 0.35);
+      }
+      .hearth::after {
+        content: "";
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 18px;
+        height: 36px;
+        background: radial-gradient(ellipse, #ff9a3c 0%, #c44a12 55%, transparent 70%);
+        filter: blur(2px);
+      }
+      .table {
+        position: absolute;
+        left: 50%;
+        bottom: 64px;
+        transform: translateX(-50%);
+        width: 520px;
+        height: 28px;
+        background: linear-gradient(180deg, #5c4030 0%, #2e2018 100%);
+        border-radius: 4px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      }
+      .die {
+        position: absolute;
+        left: 58%;
+        bottom: 108px;
+        width: 88px;
+        height: 88px;
+        transform: translateX(-50%) rotate(12deg);
+        clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+        background: linear-gradient(145deg, #e8c84a 0%, #a67c18 48%, #6b4f0f 100%);
+        box-shadow: 0 0 32px rgba(201, 162, 39, 0.55);
+      }
+      .copy {
+        position: absolute;
+        left: 72px;
+        top: 72px;
+        max-width: 520px;
+      }
+      h1 {
+        font-size: 56px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+      p {
+        font-size: 26px;
+        line-height: 1.35;
+        color: #c4b8a8;
+        max-width: 480px;
+      }
+      .tag {
+        margin-top: 28px;
+        font-size: 15px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8a7a68;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="glow"></div>
+      <div class="hearth"></div>
+      <div class="table"></div>
+      <div class="die"></div>
+      <div class="copy">
+        <h1>Crit Throw</h1>
+        <p>Candlelit tavern table. One gold D20. WebGL physics—not a dice toolkit.</p>
+        <p class="tag">Portfolio demo</p>
+      </div>
+    </div>
+  </body>
+</html>

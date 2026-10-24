@@ -17,4 +17,19 @@ describe("entry shell", () => {
     expect(html).toContain('id="result"');
     expect(html).toContain('id="skip"');
   });
+
+  it("includes share meta, favicon, and spoiler-free description", () => {
+    expect(html).toContain('name="description"');
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('property="og:description"');
+    expect(html).toContain('property="og:url"');
+    expect(html).toContain('property="og:type"');
+    expect(html).toContain('property="og:image"');
+    expect(html).toContain('name="twitter:card"');
+    expect(html).toContain('name="twitter:image"');
+    expect(html).toContain('rel="icon"');
+    expect(html).toContain("./favicon.svg");
+    expect(html).not.toMatch(/name="description"[^>]*content="[^"]*natural 20/i);
+    expect(html).not.toMatch(/property="og:description"[^>]*content="[^"]*natural 20/i);
+  });
 });
