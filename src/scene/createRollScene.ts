@@ -154,6 +154,7 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   let accumulator = 0;
   let raf = 0;
   let disposed = false;
+  let tabVisible = !document.hidden;
   let lastFrameMs = performance.now();
   let autoStartTimer = 0;
 
@@ -240,9 +241,30 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   rollBtn.addEventListener("click", onRoll);
   skipBtn.addEventListener("click", onSkip);
 
+  const scheduleTick = () => {
+    if (disposed || !tabVisible) return;
+    raf = requestAnimationFrame(tick);
+  };
+
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      tabVisible = false;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      return;
+    }
+    tabVisible = true;
+    if (disposed) return;
+    lastFrameMs = performance.now();
+    scheduleTick();
+  };
+
   const tick = (nowMs: number) => {
     if (disposed) return;
-    raf = requestAnimationFrame(tick);
+    if (document.hidden) {
+      tabVisible = false;
+      return;
+    }
 
     const elapsed = Math.min(0.1, (nowMs - lastFrameMs) / 1000);
     lastFrameMs = nowMs;
@@ -276,11 +298,14 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
         syncReplayControl();
       }
     }
+
+    scheduleTick();
   };
 
   resize();
   window.addEventListener("resize", resize);
-  raf = requestAnimationFrame(tick);
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  scheduleTick();
 
   autoStartTimer = window.setTimeout(() => {
     if (!disposed && canTriggerHeroRoll(completedRolls, rolling)) {
@@ -293,6 +318,7 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     dispose: () => {
       disposed = true;
       cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", resize);
       window.clearTimeout(autoStartTimer);
       rollBtn.removeEventListener("click", onRoll);
