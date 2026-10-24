@@ -1,17 +1,18 @@
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   Color,
   DirectionalLight,
+  HemisphereLight,
   IcosahedronGeometry,
   Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
-  PlaneGeometry,
   Quaternion,
   Scene,
+  Vector3,
   WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import {
   Body,
   ContactMaterial,
@@ -24,8 +25,25 @@ import {
 import { buildD20FaceSet, readSettledD20Value } from "../domain/d20Faces";
 import { createRestTracker, updateRestTracker } from "../domain/resting";
 import { createD20Body, tossD20 } from "../physics/d20Body";
+import { createTavernDiorama } from "./createTavernDiorama";
 
 const FIXED_STEP = 1 / 60;
+const LOOK_AT = new Vector3(0, 0.38, 0);
+
+function applyHeroFraming(camera: PerspectiveCamera, aspect: number): void {
+  if (aspect < 0.72) {
+    camera.position.set(0.55, 1.72, 4.25);
+    camera.fov = 34;
+  } else if (aspect > 1.65) {
+    camera.position.set(0.35, 1.52, 3.75);
+    camera.fov = 44;
+  } else {
+    camera.position.set(0.5, 1.62, 3.42);
+    camera.fov = 41;
+  }
+  camera.lookAt(LOOK_AT);
+  camera.updateProjectionMatrix();
+}
 
 export type RollScene = {
   renderer: WebGLRenderer;
@@ -41,25 +59,34 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
 
   const renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(new Color(0x12100e));
+  renderer.setClearColor(new Color(0x0c0b0a));
   renderer.shadowMap.enabled = true;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(42, 1, 0.1, 40);
-  camera.position.set(0, 2.2, 4.2);
+  const camera = new PerspectiveCamera(41, 1, 0.1, 40);
 
-  const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.target.set(0, 0.4, 0);
-  controls.minDistance = 2.5;
-  controls.maxDistance = 8;
-  controls.maxPolarAngle = Math.PI * 0.48;
+  scene.add(new HemisphereLight(0xffe8cc, 0x1a120c, 0.45));
+  scene.add(new AmbientLight(0x3a2a20, 0.28));
 
-  scene.add(new AmbientLight(0xfff5e6, 0.35));
-  const key = new DirectionalLight(0xffeedd, 1.1);
-  key.position.set(3, 6, 2);
+  const fill = new DirectionalLight(0xffa866, 0.28);
+  fill.position.set(-1.5, 2.2, -2.5);
+  scene.add(fill);
+
+  const key = new DirectionalLight(0xffeedd, 0.75);
+  key.position.set(2.2, 4.5, 3.2);
   key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 0.5;
+  key.shadow.camera.far = 12;
+  key.shadow.camera.left = -3;
+  key.shadow.camera.right = 3;
+  key.shadow.camera.top = 3;
+  key.shadow.camera.bottom = -3;
   scene.add(key);
+
+  const tavern = createTavernDiorama(scene);
 
   const world = new World({ gravity: new Vec3(0, -14, 0) });
   world.broadphase = new NaiveBroadphase();
@@ -77,6 +104,7 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   const floorBody = new Body({ mass: 0, material: floorMaterial });
   floorBody.addShape(new Plane());
   floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+  floorBody.position.set(0, tavern.tableSurfaceY, 0);
   world.addBody(floorBody);
 
   const d20 = createD20Body(world, diceMaterial);
@@ -94,14 +122,6 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
   diceMesh.castShadow = true;
   scene.add(diceMesh);
 
-  const floorMesh = new Mesh(
-    new PlaneGeometry(12, 12),
-    new MeshStandardMaterial({ color: 0x2a241c, roughness: 0.92 })
-  );
-  floorMesh.rotation.x = -Math.PI / 2;
-  floorMesh.receiveShadow = true;
-  scene.add(floorMesh);
-
   const meshQuat = new Quaternion();
   const restTracker = createRestTracker();
   let rolling = false;
@@ -114,8 +134,9 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     if (w === 0 || h === 0) return;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    const aspect = w / h;
+    camera.aspect = aspect;
+    applyHeroFraming(camera, aspect);
     renderer.setSize(w, h, false);
   };
 
@@ -155,7 +176,6 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     }
 
     syncMeshFromBody();
-    controls.update();
     renderer.render(scene, camera);
 
     if (rolling) {
@@ -179,11 +199,9 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       rollBtn.removeEventListener("click", onRoll);
-      controls.dispose();
+      tavern.dispose();
       diceMesh.geometry.dispose();
       (diceMesh.material as MeshStandardMaterial).dispose();
-      floorMesh.geometry.dispose();
-      (floorMesh.material as MeshStandardMaterial).dispose();
       renderer.dispose();
       world.removeBody(d20.body);
       world.removeBody(floorBody);

@@ -44,6 +44,7 @@ body {
 
 .result {
   margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 3rem;
   font-variant-numeric: tabular-nums;
   line-height: 1;
