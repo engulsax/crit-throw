@@ -9,7 +9,7 @@ import {
 import { BufferGeometry, IcosahedronGeometry } from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
-const D20_RADIUS = 0.55;
+const D20_RADIUS = 0.28;
 
 function geometryToConvexPolyhedron(geometry: BufferGeometry): ConvexPolyhedron {
   const position = geometry.attributes.position;

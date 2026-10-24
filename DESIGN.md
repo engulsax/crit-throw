@@ -44,3 +44,12 @@ Natural 20 on settle fires one 1.6s beat from a single clock: hearth-ember and d
 - **390px:** The push-in crowded the die past both frame edges. Push distance now scales with aspect ratio.
 
 Round 2: at every width, sparks fountain over the hearth and the die's top face ignites. After the beat, the camera returns to the same framing as before it. Idle FPS matched before and after a second crit at all three widths (22/23, 10/9, 7/6 under software GL). Still weak: the die is oversized for the table, and the shockwave ring is barely visible behind it.
+
+## Last look
+2026-10-24 — Playwright on `npm run dev` (localhost:5174) at 390×844, 768×1024, 1440×900; idle ~9.5s after load.
+
+- **1440px:** D20 at radius 0.55 hid the hearth and crit ring; halved to 0.28 so the die sits left-of-center with hearth and table props visible beside it.
+- **768px:** Candle pool and mug read at die scale; gold D20 no longer fills the table plane.
+- **390px:** Die still legible but table depth and hearth opening stay in frame above the HUD.
+
+Round 2 at 1440px: settled **20** with hearth glow and mug/candle flanking the die; projected width under one-third viewport (asserted in hero integration test).
