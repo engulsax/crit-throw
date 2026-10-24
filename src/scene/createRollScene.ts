@@ -23,8 +23,13 @@ import {
   World,
 } from "cannon-es";
 import { buildD20FaceSet, readSettledD20Value } from "../domain/d20Faces";
+import { activeRollMode } from "../domain/rollMode";
 import { createRestTracker, updateRestTracker } from "../domain/resting";
 import { createD20Body, tossD20 } from "../physics/d20Body";
+import {
+  applyHeroSettleGuidance,
+  tossHeroD20,
+} from "../physics/heroRoll";
 import { createTavernDiorama } from "./createTavernDiorama";
 
 const FIXED_STEP = 1 / 60;
@@ -155,10 +160,16 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     diceMesh.quaternion.copy(meshQuat);
   };
 
+  const rollMode = activeRollMode();
+
   const onRoll = () => {
     rolling = true;
     resultEl.textContent = "…";
-    tossD20(d20.body, d20.radius);
+    if (rollMode === "hero") {
+      tossHeroD20(d20.body, d20.radius);
+    } else {
+      tossD20(d20.body, d20.radius);
+    }
   };
 
   rollBtn.addEventListener("click", onRoll);
@@ -172,6 +183,9 @@ export function createRollScene(canvas: HTMLCanvasElement): RollScene {
     accumulator += elapsed;
     while (accumulator >= FIXED_STEP) {
       world.step(FIXED_STEP);
+      if (rolling && rollMode === "hero") {
+        applyHeroSettleGuidance(d20.body, faceSet, 20);
+      }
       accumulator -= FIXED_STEP;
     }
 

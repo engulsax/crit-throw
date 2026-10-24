@@ -71,7 +71,7 @@ function simulateSettledRoll(seed: number): number {
   throw new Error(`Die did not settle within ${maxSteps} steps`);
 }
 
-describe("D20 physics roll", () => {
+describe("D20 random physics roll (dev-only path)", () => {
   it("settles to a value between 1 and 20", () => {
     const value = simulateSettledRoll(42);
     expect(value).toBeGreaterThanOrEqual(1);
